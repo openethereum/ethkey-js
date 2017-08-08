@@ -1,0 +1,28 @@
+[root]
+name = "parity-ethkey-wasm"
+version = "1.8.0"
+dependencies = [
+ "libc 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tiny-keccak 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tiny-secp256k1 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "tiny-keccak"
+version = "1.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "tiny-secp256k1"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[metadata]
+"checksum libc 0.2.21 (registry+https://github.com/rust-lang/crates.io-index)" = "88ee81885f9f04bff991e306fea7c1c60a5f0f9e409e99f6b40e3311a3363135"
+"checksum tiny-keccak 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d52d12ad79e4063e0cb0ca5efa202ed7244b6ce4d25f4d3abe410b2a66128292"
+"checksum tiny-secp256k1 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4d7f72b2b6fe4a2c537514434efb7e2b724cc4a198d04d5283b50158a83ae1b8"

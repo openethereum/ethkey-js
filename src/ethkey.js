@@ -118,32 +118,36 @@ function memcpy (dest, src, len) {
 // Synchronously compile WASM from the buffer
 const module = new Module(wasmBuffer);
 
-// Instantiated WASM module
-const instance = new Instance(module, {
-  global: {},
-  env: {
-    DYNAMICTOP_PTR,
-    STACKTOP,
-    STACK_MAX,
-    abort,
-    enlargeMemory,
-    getTotalMemory,
-    abortOnCannotGrowMemory,
-    ___lock: NOOP,
-    ___syscall6: () => 0,
-    ___setErrNo: (no) => no,
-    _abort: abort,
-    ___syscall140: () => 0,
-    _emscripten_memcpy_big: memcpy,
-    ___syscall54: () => 0,
-    ___unlock: NOOP,
-    _llvm_trap: abort,
-    ___syscall146: () => 0,
-    'memory': wasmMemory,
-    'table': wasmTable,
-    tableBase: 0,
-    memoryBase: STATIC_BASE
-  }
-});
+export const extern = WebAssembly
+  .compile(wasmBuffer)
+  .then((module) => {
+    // Instantiated WASM module
+    const instance = new Instance(module, {
+      global: {},
+      env: {
+        DYNAMICTOP_PTR,
+        STACKTOP,
+        STACK_MAX,
+        abort,
+        enlargeMemory,
+        getTotalMemory,
+        abortOnCannotGrowMemory,
+        ___lock: NOOP,
+        ___syscall6: () => 0,
+        ___setErrNo: (no) => no,
+        _abort: abort,
+        ___syscall140: () => 0,
+        _emscripten_memcpy_big: memcpy,
+        ___syscall54: () => 0,
+        ___unlock: NOOP,
+        _llvm_trap: abort,
+        ___syscall146: () => 0,
+        'memory': wasmMemory,
+        'table': wasmTable,
+        tableBase: 0,
+        memoryBase: STATIC_BASE
+      }
+    });
 
-export const extern = instance.exports;
+    return instance.exports;
+  });

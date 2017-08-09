@@ -16,10 +16,16 @@
 
 import { extern, slice } from './ethkey.js';
 
-const input = slice(extern._input_ptr(), 1024);
-const secret = slice(extern._secret_ptr(), 32);
-const publicKey = slice(extern._public_ptr(), 64);
-const address = slice(extern._address_ptr(), 20);
+const ctx = extern
+  .then((extern) => {
+    return {
+      extern,
+      input: slice(extern._input_ptr(), 1024),
+      secret: slice(extern._secret_ptr(), 32),
+      publicKey: slice(extern._public_ptr(), 64),
+      address: slice(extern._address_ptr(), 20),
+    }
+  });
 
 function bytesToHex (bytes) {
   return `0x${Buffer.from(bytes).toString('hex')}`;
@@ -28,27 +34,33 @@ function bytesToHex (bytes) {
 export function phraseToWallet (phrase) {
   const phraseUtf8 = Buffer.from(phrase, 'utf8');
 
-  if (phraseUtf8.length > input.length) {
-    throw new Error('Phrase is too long!');
-  }
+  return ctx
+    .then(({ extern, input, secret, publicKey, address }) => {
+      if (phraseUtf8.length > input.length) {
+        throw new Error('Phrase is too long!');
+      }
 
-  input.set(phraseUtf8);
+      input.set(phraseUtf8);
 
-  extern._brain(phraseUtf8.length);
+      extern._brain(phraseUtf8.length);
 
-  const wallet = {
-    secret: bytesToHex(secret),
-    public: bytesToHex(publicKey),
-    address: bytesToHex(address)
-  };
+      const wallet = {
+        secret: bytesToHex(secret),
+        public: bytesToHex(publicKey),
+        address: bytesToHex(address)
+      };
 
-  return wallet;
+      return wallet;
+    });
 }
 
 export function verifySecret (key) {
   const keyBuf = Buffer.from(key.slice(2), 'hex');
 
-  secret.set(keyBuf);
+  return ctx
+    .then(({ extern, secret }) => {
+      secret.set(keyBuf);
 
-  return extern._verify_secret();
+      return Boolean(extern._verify_secret());
+    });
 }

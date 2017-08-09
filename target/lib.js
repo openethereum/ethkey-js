@@ -147,45 +147,47 @@ function memcpy(dest, src, len) {
 // Synchronously compile WASM from the buffer
 var module$1 = new Module(wasmBuffer);
 
-// Instantiated WASM module
-var instance = new Instance(module$1, {
-  global: {},
-  env: {
-    DYNAMICTOP_PTR: DYNAMICTOP_PTR,
-    STACKTOP: STACKTOP,
-    STACK_MAX: STACK_MAX,
-    abort: abort,
-    enlargeMemory: enlargeMemory,
-    getTotalMemory: getTotalMemory,
-    abortOnCannotGrowMemory: abortOnCannotGrowMemory,
-    ___lock: NOOP,
-    ___syscall6: function ___syscall6() {
-      return 0;
-    },
-    ___setErrNo: function ___setErrNo(no) {
-      return no;
-    },
-    _abort: abort,
-    ___syscall140: function ___syscall140() {
-      return 0;
-    },
-    _emscripten_memcpy_big: memcpy,
-    ___syscall54: function ___syscall54() {
-      return 0;
-    },
-    ___unlock: NOOP,
-    _llvm_trap: abort,
-    ___syscall146: function ___syscall146() {
-      return 0;
-    },
-    'memory': wasmMemory,
-    'table': wasmTable,
-    tableBase: 0,
-    memoryBase: STATIC_BASE
-  }
-});
+var extern = WebAssembly.compile(wasmBuffer).then(function (module) {
+  // Instantiated WASM module
+  var instance = new Instance(module, {
+    global: {},
+    env: {
+      DYNAMICTOP_PTR: DYNAMICTOP_PTR,
+      STACKTOP: STACKTOP,
+      STACK_MAX: STACK_MAX,
+      abort: abort,
+      enlargeMemory: enlargeMemory,
+      getTotalMemory: getTotalMemory,
+      abortOnCannotGrowMemory: abortOnCannotGrowMemory,
+      ___lock: NOOP,
+      ___syscall6: function ___syscall6() {
+        return 0;
+      },
+      ___setErrNo: function ___setErrNo(no) {
+        return no;
+      },
+      _abort: abort,
+      ___syscall140: function ___syscall140() {
+        return 0;
+      },
+      _emscripten_memcpy_big: memcpy,
+      ___syscall54: function ___syscall54() {
+        return 0;
+      },
+      ___unlock: NOOP,
+      _llvm_trap: abort,
+      ___syscall146: function ___syscall146() {
+        return 0;
+      },
+      'memory': wasmMemory,
+      'table': wasmTable,
+      tableBase: 0,
+      memoryBase: STATIC_BASE
+    }
+  });
 
-var extern = instance.exports;
+  return instance.exports;
+});
 
 // Copyright 2015-2017 Parity Technologies (UK) Ltd.
 // This file is part of Parity.
@@ -203,37 +205,59 @@ var extern = instance.exports;
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
-var input = slice(extern._input_ptr(), 1024);
-var secret = slice(extern._secret_ptr(), 32);
-var publicKey = slice(extern._public_ptr(), 64);
-var address = slice(extern._address_ptr(), 20);
+var ctx = extern.then(function (extern$$1) {
+  return {
+    extern: extern$$1,
+    input: slice(extern$$1._input_ptr(), 1024),
+    secret: slice(extern$$1._secret_ptr(), 32),
+    publicKey: slice(extern$$1._public_ptr(), 64),
+    address: slice(extern$$1._address_ptr(), 20)
+  };
+});
+
+function bytesToHex(bytes) {
+  return '0x' + Buffer.from(bytes).toString('hex');
+}
 
 function phraseToWallet(phrase) {
   var phraseUtf8 = Buffer.from(phrase, 'utf8');
 
-  if (phraseUtf8.length > input.length) {
-    throw new Error('Phrase is too long!');
-  }
+  return ctx.then(function (_ref) {
+    var extern$$1 = _ref.extern,
+        input = _ref.input,
+        secret = _ref.secret,
+        publicKey = _ref.publicKey,
+        address = _ref.address;
 
-  input.set(phraseUtf8);
+    if (phraseUtf8.length > input.length) {
+      throw new Error('Phrase is too long!');
+    }
 
-  extern._brain(phraseUtf8.length);
+    input.set(phraseUtf8);
 
-  var wallet = {
-    secret: bytesToHex(secret),
-    public: bytesToHex(publicKey),
-    address: bytesToHex(address)
-  };
+    extern$$1._brain(phraseUtf8.length);
 
-  return wallet;
+    var wallet = {
+      secret: bytesToHex(secret),
+      public: bytesToHex(publicKey),
+      address: bytesToHex(address)
+    };
+
+    return wallet;
+  });
 }
 
 function verifySecret(key) {
   var keyBuf = Buffer.from(key.slice(2), 'hex');
 
-  secret.set(keyBuf);
+  return ctx.then(function (_ref2) {
+    var extern$$1 = _ref2.extern,
+        secret = _ref2.secret;
 
-  return extern._verify_secret();
+    secret.set(keyBuf);
+
+    return Boolean(extern$$1._verify_secret());
+  });
 }
 
 exports.phraseToWallet = phraseToWallet;

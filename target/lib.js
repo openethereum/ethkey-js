@@ -86,7 +86,6 @@ function mockWebAssembly() {
 var _ref = typeof WebAssembly !== 'undefined' ? WebAssembly : mockWebAssembly();
 var Memory = _ref.Memory;
 var Table = _ref.Table;
-var Instance = _ref.Instance;
 
 var wasmMemory = new Memory({
   initial: TOTAL_MEMORY / WASM_PAGE_SIZE,
@@ -145,8 +144,7 @@ function memcpy(dest, src, len) {
 
 // Asynchronously compile WASM from the buffer
 var extern = WebAssembly.compile(wasmBuffer).then(function (module) {
-  // Instantiated WASM module
-  var instance = new Instance(module, {
+  return WebAssembly.instantiate(module, {
     global: {},
     env: {
       DYNAMICTOP_PTR: DYNAMICTOP_PTR,
@@ -182,7 +180,7 @@ var extern = WebAssembly.compile(wasmBuffer).then(function (module) {
       memoryBase: STATIC_BASE
     }
   });
-
+}).then(function (instance) {
   return instance.exports;
 });
 

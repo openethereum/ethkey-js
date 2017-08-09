@@ -119,8 +119,7 @@ function memcpy (dest, src, len) {
 export const extern = WebAssembly
   .compile(wasmBuffer)
   .then((module) => {
-    // Instantiated WASM module
-    const instance = new Instance(module, {
+    return WebAssembly.instantiate(module, {
       global: {},
       env: {
         DYNAMICTOP_PTR,
@@ -146,6 +145,5 @@ export const extern = WebAssembly
         memoryBase: STATIC_BASE
       }
     });
-
-    return instance.exports;
-  });
+  })
+  .then((instance) => instance.exports);

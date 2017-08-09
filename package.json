@@ -1,5 +1,5 @@
 {
-  "name": "ethkey.js",
+  "name": "@parity/ethkey.js",
   "version": "0.2.0",
   "description": "",
   "main": "target/lib.js",

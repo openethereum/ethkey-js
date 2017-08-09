@@ -2,6 +2,10 @@
 
 Ethereum keys generator, compatible with [rust codebase](https://github.com/paritytech/parity/tree/master/ethkey).
 
+# Installation
+
+`$ npm i @parity/ethkey.js --save`
+
 ## API
 
 #### `phraseToWallet (String key)`

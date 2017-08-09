@@ -201,6 +201,8 @@ var extern = WebAssembly.compile(wasmBuffer).then(function (module) {
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 var ctx = extern.then(function (extern$$1) {
+  extern$$1._ecpointg();
+
   return {
     extern: extern$$1,
     input: slice(extern$$1._input_ptr(), 1024),

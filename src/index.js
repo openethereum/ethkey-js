@@ -18,6 +18,8 @@ import { extern, slice } from './ethkey.js';
 
 const ctx = extern
   .then((extern) => {
+    extern._ecpointg();
+
     return {
       extern,
       input: slice(extern._input_ptr(), 1024),

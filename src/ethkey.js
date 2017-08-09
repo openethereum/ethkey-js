@@ -115,9 +115,7 @@ function memcpy (dest, src, len) {
   return dest;
 }
 
-// Synchronously compile WASM from the buffer
-const module = new Module(wasmBuffer);
-
+// Asynchronously compile WASM from the buffer
 export const extern = WebAssembly
   .compile(wasmBuffer)
   .then((module) => {

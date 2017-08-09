@@ -86,7 +86,6 @@ function mockWebAssembly() {
 var _ref = typeof WebAssembly !== 'undefined' ? WebAssembly : mockWebAssembly();
 var Memory = _ref.Memory;
 var Table = _ref.Table;
-var Module = _ref.Module;
 var Instance = _ref.Instance;
 
 var wasmMemory = new Memory({
@@ -144,9 +143,7 @@ function memcpy(dest, src, len) {
   return dest;
 }
 
-// Synchronously compile WASM from the buffer
-var module$1 = new Module(wasmBuffer);
-
+// Asynchronously compile WASM from the buffer
 var extern = WebAssembly.compile(wasmBuffer).then(function (module) {
   // Instantiated WASM module
   var instance = new Instance(module, {

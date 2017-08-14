@@ -40,25 +40,13 @@ function mockWebAssembly () {
   // Simple mock replacement
   return {
     Memory: class { constructor () { this.buffer = new ArrayBuffer(2048); } },
-    Table: class {},
-    Module: class {},
-    Instance: class {
-      constructor () {
-        this.exports = {
-          '_input_ptr': () => 0,
-          '_secret_ptr': () => 0,
-          '_public_ptr': () => 0,
-          '_address_ptr': () => 0,
-          '_ecpointg': NOOP,
-          '_brain': throwWasmError,
-          '_verify_secret': throwWasmError
-        }
-      }
-    }
+    Table: class {}
   };
 }
 
-const { Memory, Table, Module, Instance } = typeof WebAssembly !== 'undefined' ? WebAssembly : mockWebAssembly();
+const wasmSupported = typeof WebAssembly !== 'undefined';
+
+const { Memory, Table } = wasmSupported ? WebAssembly : mockWebAssembly();
 
 const wasmMemory = new Memory({
   initial: TOTAL_MEMORY / WASM_PAGE_SIZE,
@@ -116,7 +104,7 @@ function memcpy (dest, src, len) {
 }
 
 // Asynchronously compile WASM from the buffer
-export const extern = WebAssembly
+export const extern = !wasmSupported ? Promise.reject(new Error('No WebAssembly')) : WebAssembly
   .compile(wasmBuffer)
   .then((module) => {
     return WebAssembly.instantiate(module, {

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
+import secp256k1 from 'secp256k1/elliptic';
+import { keccak_256 as keccak256 } from 'js-sha3';
 import { extern, slice } from './ethkey.js';
 
 const ctx = extern
@@ -27,17 +29,56 @@ const ctx = extern
       publicKey: slice(extern._public_ptr(), 64),
       address: slice(extern._address_ptr(), 20),
     }
-  });
+  })
+  .catch(() => null);
 
 function bytesToHex (bytes) {
   return `0x${Buffer.from(bytes).toString('hex')}`;
+}
+
+function seedToWalletFallback (seed) {
+  let secret = keccak256.array(seed);
+
+  for (let i = 0; i < 16384; i++) {
+    secret = keccak256.array(secret);
+  }
+
+  while (true) {
+    secret = keccak256.array(secret);
+
+    const secretBuf = Buffer.from(secret);
+
+    if (secp256k1.privateKeyVerify(secretBuf)) {
+      // No compression, slice out last 64 bytes
+      const publicBuf = secp256k1.publicKeyCreate(secretBuf, false).slice(-64);
+      const address = keccak256.array(publicBuf).slice(12);
+
+      if (address[0] !== 0) {
+        continue;
+      }
+
+      const wallet = {
+        secret: bytesToHex(secretBuf),
+        public: bytesToHex(publicBuf),
+        address: bytesToHex(address)
+      };
+
+      return wallet;
+    }
+  }
 }
 
 export function phraseToWallet (phrase) {
   const phraseUtf8 = Buffer.from(phrase, 'utf8');
 
   return ctx
-    .then(({ extern, input, secret, publicKey, address }) => {
+    .then((ctx) => {
+      if (!ctx) {
+        return seedToWalletFallback(phraseUtf8);
+      }
+
+      const { extern, input, secret, publicKey, address } = ctx;
+
       if (phraseUtf8.length > input.length) {
         throw new Error('Phrase is too long!');
       }
@@ -60,7 +101,13 @@ export function verifySecret (key) {
   const keyBuf = Buffer.from(key.slice(2), 'hex');
 
   return ctx
-    .then(({ extern, secret }) => {
+    .then((ctx) => {
+      if (!ctx) {
+        return secp256k1.privateKeyVerify(keyBuf);
+      }
+
+      const { extern, secret } = ctx;
+
       secret.set(keyBuf);
 
       return Boolean(extern._verify_secret());

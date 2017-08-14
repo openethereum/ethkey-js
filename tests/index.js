@@ -17,6 +17,12 @@ test('verify secret', async function(t) {
     );
 
     t.equal(
+        await verifySecret('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364142'),
+        false,
+        'rejects `N + 1`'
+    );
+
+    t.equal(
         await verifySecret('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140'),
         true,
         'accepts `N - 1`'

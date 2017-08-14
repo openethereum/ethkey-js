@@ -49,7 +49,7 @@ test('verify secret', function(t) {
     });
 });
 
-test('generates valid wallet object', async function(t) {
+test('generates valid wallet object', function(t) {
   return phraseToWallet('doge to the moon')
     .then(function (wallet) {
       t.equal(

@@ -1,6 +1,6 @@
 # Parity ethkey.js
 
-Ethereum keys generator, compatible with [rust codebase](https://github.com/paritytech/parity/tree/master/ethkey).
+Ethereum keys generator, compatible with [rust codebase](https://github.com/openethereum/openethereum/tree/master/accounts/ethkey).
 
 # Installation
 
